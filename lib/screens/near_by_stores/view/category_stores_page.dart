@@ -465,19 +465,6 @@ class _StoreCard extends StatelessWidget {
                       decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(4.r)),
                       child: Text('CLOSED', style: TextStyle(fontSize: 9.sp, color: Colors.grey.shade500, fontWeight: FontWeight.w600)),
                     ),
-                  const Spacer(),
-                  if (store.status?.isOpen == true)
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
-                      decoration: BoxDecoration(color: const Color(0xFFE8F5E9), borderRadius: BorderRadius.circular(4.r)),
-                      child: Text('OPEN', style: TextStyle(fontSize: 9.sp, color: const Color(0xFF2E7D32), fontWeight: FontWeight.w600)),
-                    )
-                  else
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
-                      decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(4.r)),
-                      child: Text('CLOSED', style: TextStyle(fontSize: 9.sp, color: Colors.grey.shade500, fontWeight: FontWeight.w600)),
-                    ),
                 ]),
               ]),
             ),
