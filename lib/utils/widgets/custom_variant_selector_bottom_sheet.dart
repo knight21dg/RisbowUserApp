@@ -151,45 +151,36 @@ class _VariantSelectionBottomSheetState
       padding: const EdgeInsets.only(left: 16, right: 16, top: 10),
       child: Container(
         decoration: BoxDecoration(
-            border: Border.all(color: Theme.of(context).colorScheme.outline),
-            borderRadius: BorderRadius.circular(10)),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.outlineVariant,
+              width: 1,
+            ),
+            borderRadius: BorderRadius.circular(12)),
         child: Row(
           children: [
             // Product Image
             Container(
-              width: 60,
-              height: 60,
+              width: 64,
+              height: 64,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                color: Theme.of(context).colorScheme.onPrimary,
+                borderRadius: BorderRadius.circular(10),
+                color: const Color(0xFFF5F5F5),
               ),
+              margin: const EdgeInsets.all(8),
               child: imageUrl != null
                   ? ClipRRect(
-                      borderRadius: BorderRadius.circular(6),
+                      borderRadius: BorderRadius.circular(8),
                       child: CustomImageContainer(
                         imagePath: imageUrl,
-                        width: 60,
-                        height: 60,
+                        width: 64,
+                        height: 64,
                         fit: BoxFit.cover,
-                        placeholder:
-                            Center(child: CustomCircularProgressIndicator()),
                       ),
                     )
-                  : Container(
-                      width: 60,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(
-                        Icons.add,
-                        color: Colors.grey[400],
-                        size: 24,
-                      ),
-                    ),
+                  : const Icon(Icons.add, color: Color(0xFFBDBDBD), size: 24),
             ),
 
-            const SizedBox(width: 12),
+            const SizedBox(width: 4),
 
             // Details
             Expanded(
@@ -200,11 +191,8 @@ class _VariantSelectionBottomSheetState
                     variant.title,
                     style: TextStyle(
                       fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: Theme.of(context)
-                          .colorScheme
-                          .tertiary
-                          .withValues(alpha: 0.6),
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
                     ),
                   ),
 
@@ -214,21 +202,21 @@ class _VariantSelectionBottomSheetState
                   Row(
                     children: [
                       Text(
-                        '${AppConstant.currency}${(variant.specialPrice).toStringAsFixed(2)}',
+                        '${AppConstant.currency}${(variant.specialPrice).toStringAsFixed(0)}',
                         style: const TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1565C0),
                         ),
                       ),
 
-                      // Original Price (if special price exists)
                       if (variant.specialPrice < variant.price)
                         Padding(
                           padding: const EdgeInsets.only(left: 8),
                           child: Text(
-                            '${AppConstant.currency}${variant.price.toStringAsFixed(2)}',
+                            '${AppConstant.currency}${variant.price.toStringAsFixed(0)}',
                             style: const TextStyle(
-                              fontSize: 14,
+                              fontSize: 13,
                               color: Colors.grey,
                               decoration: TextDecoration.lineThrough,
                             ),
@@ -236,13 +224,29 @@ class _VariantSelectionBottomSheetState
                         ),
                     ],
                   ),
+                  const SizedBox(height: 2),
+                  if (variant.stock <= 5 && variant.stock > 0)
+                    Row(
+                      children: [
+                        Container(
+                          width: 6, height: 6,
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFFFA000),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Text('Only ${variant.stock} left',
+                          style: const TextStyle(fontSize: 11, color: Color(0xFFFFA000), fontWeight: FontWeight.w500)),
+                      ],
+                    ),
                 ],
               ),
             ),
 
             // Add Button / Stepper
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 10.0),
+              padding: const EdgeInsets.symmetric(horizontal: 10),
               child: BlocBuilder<CartBloc, CartState>(
                 builder: (context, state) {
                   final cartItem =
