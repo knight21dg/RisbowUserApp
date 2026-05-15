@@ -465,7 +465,7 @@ class _CategoryStoreProductsPageState extends State<CategoryStoreProductsPage> {
         productId: product.id.toString(),
         variantId: '0',
         variantName: 'Default',
-        vendorId: '0',
+        vendorId: product.sellerId.toString(),
         name: product.title,
         image: product.mainImage,
         price: specialPrice > 0 ? specialPrice : price,
