@@ -43,6 +43,8 @@ class _CategoryStoreProductsPageState extends State<CategoryStoreProductsPage> {
   String? _error;
   String _currentSort = 'relevance';
   double _maxPrice = 0;
+  String _parentTitle = '';
+  String _parentSlug = '';
 
   @override
   void initState() {
@@ -54,17 +56,21 @@ class _CategoryStoreProductsPageState extends State<CategoryStoreProductsPage> {
     try {
       // Find the parent slug from store's categories
       String parentSlug = widget.categorySlug;
+      String parentTitle = widget.categorySlug;
       if (widget.store.categories != null && widget.store.categories!.isNotEmpty) {
-        // The store's categories are parent-level. Use the first one as the parent.
-        parentSlug = widget.store.categories!.first.slug ?? widget.categorySlug;
-        // If the current slug is already in the store's categories, use it as parent
-        // (it's a parent-level category itself, like "Grocery")
+        final firstCat = widget.store.categories!.first;
+        parentSlug = firstCat.slug ?? widget.categorySlug;
+        parentTitle = firstCat.title ?? widget.categorySlug;
         final hasExact = widget.store.categories!.any((c) => c.slug == widget.categorySlug);
         if (!hasExact) {
-          // Current slug is a subcategory - use the store's first category as parent
-          parentSlug = widget.store.categories!.first.slug ?? widget.categorySlug;
+          parentSlug = firstCat.slug ?? widget.categorySlug;
+          parentTitle = firstCat.title ?? widget.categorySlug;
         }
       }
+      setState(() {
+        _parentSlug = parentSlug;
+        _parentTitle = parentTitle;
+      });
 
       // Fetch subcategories of the parent
       final response = await _subRepo.fetchSubCategory(slug: parentSlug, isForAllCategory: false, perPage: 50);
@@ -73,16 +79,18 @@ class _CategoryStoreProductsPageState extends State<CategoryStoreProductsPage> {
       if (rawData is List) data = rawData;
       else if (rawData is Map && rawData['data'] != null) data = rawData['data'] as List<dynamic>;
       final subs = data.map((d) => SubCategoryData.fromJson(d as Map<String, dynamic>)).toList();
+      // Only keep subcategories that have products
+      final withProducts = subs.where((s) => (s.productCount ?? 0) > 0).toList();
       setState(() {
-        _subCategories = subs;
+        _subCategories = withProducts;
         _isLoadingSubs = false;
       });
       // Auto-select the one matching the incoming category slug
-      final match = subs.cast<SubCategoryData?>().firstWhere((s) => s?.slug == widget.categorySlug, orElse: () => null);
+      final match = withProducts.cast<SubCategoryData?>().firstWhere((s) => s?.slug == widget.categorySlug, orElse: () => null);
       if (match != null) {
         _selectSubcategory(match);
-      } else if (subs.isNotEmpty) {
-        _selectSubcategory(subs.first);
+      } else if (withProducts.isNotEmpty) {
+        _selectSubcategory(withProducts.first);
       } else {
         _fetchProducts(widget.categorySlug);
       }
@@ -234,22 +242,15 @@ class _CategoryStoreProductsPageState extends State<CategoryStoreProductsPage> {
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(children: [
                 Flexible(child: Text(widget.store.name ?? '', style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600, color: Colors.black), maxLines: 1, overflow: TextOverflow.ellipsis)),
-                if (_subCategories.isNotEmpty && _selectedSubcategory != null) ...[
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 4.w),
-                    child: Icon(Icons.chevron_right, size: 14.sp, color: Colors.grey.shade400),
+                SizedBox(width: 4.w),
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 1.h),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1565C0).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(3.r),
                   ),
-                  Flexible(
-                    child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1565C0).withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(4.r),
-                      ),
-                      child: Text(_selectedSubcategory!.title ?? '', style: TextStyle(fontSize: 10.sp, color: const Color(0xFF1565C0), fontWeight: FontWeight.w600), maxLines: 1, overflow: TextOverflow.ellipsis),
-                    ),
-                  ),
-                ],
+                  child: Text(_parentTitle, style: TextStyle(fontSize: 9.sp, color: const Color(0xFF1565C0), fontWeight: FontWeight.w600)),
+                ),
               ]),
               if (widget.store.distance != null && widget.store.distance! > 0)
                 Text('${widget.store.distance!.toStringAsFixed(1)} km', style: TextStyle(fontSize: 10.sp, color: Colors.grey.shade500)),
@@ -261,7 +262,7 @@ class _CategoryStoreProductsPageState extends State<CategoryStoreProductsPage> {
           ? _buildShimmer()
           : Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
               _buildSubcategoryPanel(),
-              Container(width: 1, color: Theme.of(context).colorScheme.outlineVariant),
+              Container(width: 1, color: Colors.grey.shade200),
               Expanded(child: _buildProductPanel()),
             ]),
     );
@@ -284,37 +285,65 @@ class _CategoryStoreProductsPageState extends State<CategoryStoreProductsPage> {
       width: 100.w,
       child: Container(
         color: Theme.of(context).colorScheme.surfaceContainerLow,
-        child: ListView.builder(
-          padding: EdgeInsets.only(top: 8.h),
-          itemCount: _subCategories.length,
-          itemBuilder: (context, i) {
-            final sub = _subCategories[i];
-            final isSelected = _selectedSubcategory?.slug == sub.slug;
-            return GestureDetector(
-              onTap: () => _selectSubcategory(sub),
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 12.h),
-                color: isSelected ? Colors.white : null,
-                child: Column(children: [
-                  Container(
-                    width: 44.w, height: 44.w,
+        child: Column(children: [
+          // Parent title
+          if (_parentTitle.isNotEmpty)
+            Container(
+              padding: EdgeInsets.fromLTRB(12.w, 14.h, 12.w, 8.h),
+              alignment: Alignment.centerLeft,
+              child: Text(_parentTitle, style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.bold, color: Colors.black87, letterSpacing: 0.5)),
+            ),
+          Expanded(
+            child: ListView.builder(
+              padding: EdgeInsets.zero,
+              itemCount: _subCategories.length,
+              itemBuilder: (context, i) {
+                final sub = _subCategories[i];
+                final isSelected = _selectedSubcategory?.slug == sub.slug;
+                return GestureDetector(
+                  onTap: () => _selectSubcategory(sub),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 14.h),
                     decoration: BoxDecoration(
-                      color: Colors.white, borderRadius: BorderRadius.circular(10.r),
-                      border: Border.all(color: isSelected ? const Color(0xFF1565C0) : Colors.grey.shade200, width: isSelected ? 1.5 : 0.5),
+                      color: isSelected ? Colors.white : null,
+                      border: Border(
+                        right: BorderSide(
+                          color: isSelected ? const Color(0xFF1565C0) : Colors.transparent,
+                          width: 3,
+                        ),
+                      ),
                     ),
-                    padding: EdgeInsets.all(6.w),
-                    child: CustomImageContainer(imagePath: sub.image ?? '', fit: BoxFit.contain),
+                    child: Row(children: [
+                      Container(
+                        width: 40.w, height: 40.w,
+                        padding: EdgeInsets.all(8.w),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10.r),
+                          boxShadow: isSelected
+                              ? [BoxShadow(color: const Color(0xFF1565C0).withValues(alpha: 0.08), blurRadius: 6)]
+                              : null,
+                        ),
+                        child: CustomImageContainer(imagePath: sub.image ?? '', fit: BoxFit.contain),
+                      ),
+                      SizedBox(width: 10.w),
+                      Expanded(
+                        child: Text(sub.title ?? '',
+                          style: TextStyle(
+                            fontSize: 11.sp,
+                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                            color: isSelected ? const Color(0xFF1565C0) : Colors.black87,
+                          ),
+                          maxLines: 2, overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ]),
                   ),
-                  SizedBox(height: 4.h),
-                  Text(sub.title ?? '', textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 9.sp, fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400, color: isSelected ? const Color(0xFF1565C0) : Colors.black87),
-                    maxLines: 2, overflow: TextOverflow.ellipsis,
-                  ),
-                ]),
-              ),
-            );
-          },
-        ),
+                );
+              },
+            ),
+          ),
+        ]),
       ),
     );
   }
@@ -330,32 +359,32 @@ class _CategoryStoreProductsPageState extends State<CategoryStoreProductsPage> {
     return Container(
       padding: EdgeInsets.fromLTRB(12.w, 8.h, 12.w, 4.h),
       color: Colors.white,
-      child: Row(children: [
-        Text(_selectedSubcategory?.title ?? '', style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: Colors.black)),
-        SizedBox(width: 8.w),
-        Expanded(child: Divider(color: Colors.grey.shade200, thickness: 1)),
-        SizedBox(width: 8.w),
-        InkWell(onTap: _showSortSheet,
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-            decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade300), borderRadius: BorderRadius.circular(6.r)),
-            child: Row(mainAxisSize: MainAxisSize.min, children: [
-              Icon(Icons.swap_vert, size: 14.sp, color: const Color(0xFF1565C0)),
-              SizedBox(width: 4.w), Text('Sort', style: TextStyle(fontSize: 11.sp, color: const Color(0xFF1565C0), fontWeight: FontWeight.w600)),
-            ]),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+        Text(_selectedSubcategory?.title ?? '', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: Colors.black)),
+        SizedBox(height: 6.h),
+        Row(children: [
+          InkWell(onTap: _showSortSheet,
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+              decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade300), borderRadius: BorderRadius.circular(8.r)),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                Icon(Icons.swap_vert, size: 16.sp, color: const Color(0xFF1565C0)),
+                SizedBox(width: 4.w), Text('Sort', style: TextStyle(fontSize: 12.sp, color: const Color(0xFF1565C0), fontWeight: FontWeight.w600)),
+              ]),
+            ),
           ),
-        ),
-        SizedBox(width: 6.w),
-        InkWell(onTap: _showFilterSheet,
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-            decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade300), borderRadius: BorderRadius.circular(6.r)),
-            child: Row(mainAxisSize: MainAxisSize.min, children: [
-              Icon(Icons.tune, size: 14.sp, color: const Color(0xFF1565C0)),
-              SizedBox(width: 4.w), Text('Filter', style: TextStyle(fontSize: 11.sp, color: const Color(0xFF1565C0), fontWeight: FontWeight.w600)),
-            ]),
+          SizedBox(width: 10.w),
+          InkWell(onTap: _showFilterSheet,
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+              decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade300), borderRadius: BorderRadius.circular(8.r)),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                Icon(Icons.tune, size: 16.sp, color: const Color(0xFF1565C0)),
+                SizedBox(width: 4.w), Text('Filter', style: TextStyle(fontSize: 12.sp, color: const Color(0xFF1565C0), fontWeight: FontWeight.w600)),
+              ]),
+            ),
           ),
-        ),
+        ]),
       ]),
     );
   }

@@ -528,7 +528,7 @@ class _ProductListingPageState extends State<ProductListingPage> {
                 crossAxisCount: crossAxisCount,
                 crossAxisSpacing: 8.w,
                 mainAxisSpacing: 6.h,
-                mainAxisExtent: crossAxisCount == 2 ? 275.h : 250.h,
+                mainAxisExtent: crossAxisCount == 2 ? 300.h : 275.h,
               ),
               itemCount:
                   hasReachedMax ? productData.length : productData.length + 3,
@@ -676,7 +676,7 @@ isOutOfStock = !product.available || product.stock <= 0;
           crossAxisCount: crossAxisCount,
           crossAxisSpacing: 8.w,
           mainAxisSpacing: 6.h,
-          mainAxisExtent: crossAxisCount == 2 ? 180.h : 200.h,
+          mainAxisExtent: crossAxisCount == 2 ? 275.h : 250.h,
         ),
         itemCount: 12,
         itemBuilder: (context, index) {

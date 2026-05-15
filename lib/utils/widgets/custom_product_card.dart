@@ -128,7 +128,7 @@ class CustomProductCard extends StatelessWidget {
                           children: [
 
                             productNameWidget(productName: productName, context: context),
-                            SizedBox(height: 2.h),
+                            SizedBox(height: 1.h),
                             // Product Price
                             productPriceWidget(
                                 price: productPrice,
@@ -136,9 +136,9 @@ class CustomProductCard extends StatelessWidget {
                                 locale: 'en_IN',
                               context: context
                             ),
-                            SizedBox(height: 3.h),
+                            SizedBox(height: 2.h),
                             ratingWidget(context),
-                            SizedBox(height: 6.h),
+                            SizedBox(height: 4.h),
                             // Delivery Time
                             DeliveryTimeWidget(time: estimatedDeliveryTime),
                           ],
@@ -165,7 +165,7 @@ class CustomProductCard extends StatelessWidget {
           // Main image container
           Container(
             width: double.infinity,
-            height: 125.h,
+            height: 120.h,
             decoration: const BoxDecoration(
               color: Colors.transparent,
             ),
