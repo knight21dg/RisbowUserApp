@@ -14,6 +14,7 @@ class NearByStoreRepo {
     int page = 1,
     int perPage = 15,
     required String searchQuery,
+    String? category,
   }) async {
     try {
       final coords = LocationService.getCoordinates();
@@ -31,7 +32,9 @@ class NearByStoreRepo {
         'page': page.toString(),
         'per_page': perPage.toString(),
         if(searchQuery.isNotEmpty)
-          'search': searchQuery
+          'search': searchQuery,
+        if(category != null && category.isNotEmpty)
+          'category': category,
       };
 
       final response = await AppConstant.apiBaseHelper.getAPICall(

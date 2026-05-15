@@ -76,15 +76,8 @@ class _SubCategoryFeatureSectionWidgetState extends State<SubCategoryFeatureSect
                       return InkWell(
                         borderRadius: BorderRadius.circular(12.r),
                         onTap: () => GoRouter.of(context).push(
-                          AppRoutes.productListing,
-                          extra: {
-                            'isTheirMoreCategory': data.subcategoryCount! > 0,
-                            'title': data.title,
-                            'logo': data.image,
-                            'totalProduct': data.productCount,
-                            'type': ProductListingType.category,
-                            'identifier': data.slug,
-                          },
+                          AppRoutes.nearbyStores,
+                          extra: {'categorySlug': data.slug, 'categoryTitle': data.title},
                         ),
                         child: SizedBox(
                           width: (MediaQuery.of(context).size.width - 16.w * 2 - 12.w * 3) / 4,

@@ -19,7 +19,10 @@ import '../../../utils/widgets/custom_refresh_indicator.dart';
 import '../../../utils/widgets/custom_textfield.dart';
 
 class NearbyStoresPage extends StatefulWidget {
-  const NearbyStoresPage({super.key});
+  final String? categorySlug;
+  final String? categoryTitle;
+
+  const NearbyStoresPage({super.key, this.categorySlug, this.categoryTitle});
 
   @override
   State<NearbyStoresPage> createState() => _NearbyStoresPageState();
@@ -37,7 +40,7 @@ class _NearbyStoresPageState extends State<NearbyStoresPage> {
   @override
   void initState() {
     super.initState();
-    _bloc = NearByStoreBloc()..add(const FetchNearByStores(perPage: 15, searchQuery: ''));
+    _bloc = NearByStoreBloc()..add(FetchNearByStores(perPage: 15, searchQuery: '', category: widget.categorySlug));
     _scrollController.addListener(_onScroll);
     _searchController.addListener(_onSearchChanged);
   }
@@ -65,7 +68,7 @@ class _NearbyStoresPageState extends State<NearbyStoresPage> {
     }
 
     // Trigger search
-    _bloc.add(FetchNearByStores(perPage: 15, searchQuery: searchQuery));
+    _bloc.add(FetchNearByStores(perPage: 15, searchQuery: searchQuery, category: widget.categorySlug));
   }
 
   void _clearSearch() {
@@ -177,6 +180,7 @@ class _NearbyStoresPageState extends State<NearbyStoresPage> {
         _bloc.add(LoadMoreNearByStores(
           perPage: 15,
           searchQuery: _currentSearchQuery,
+          category: widget.categorySlug,
         ));
       }
     }
@@ -204,7 +208,7 @@ class _NearbyStoresPageState extends State<NearbyStoresPage> {
           children: [
             Expanded(
               child: Text(
-                AppLocalizations.of(context)?.nearbyStores ?? 'Nearby Stores',
+                AppLocalizations.of(context)?.nearbyStores ?? widget.categoryTitle ?? 'Nearby Stores',
                 style: TextStyle(
                     fontWeight: FontWeight.w600,
                     color: Theme.of(context).colorScheme.tertiary,

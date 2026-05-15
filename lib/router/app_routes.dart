@@ -437,8 +437,13 @@ class MyAppRoute {
               GoRoute(
                 name: 'near-by-store',
                 path: AppRoutes.nearbyStores,
-                pageBuilder: (context, state) =>
-                    platformPage(NearbyStoresPage()),
+                pageBuilder: (context, state) {
+                  final extra = state.extra as Map<String, dynamic>?;
+                  return platformPage(NearbyStoresPage(
+                    categorySlug: extra?['categorySlug'] as String?,
+                    categoryTitle: extra?['categoryTitle'] as String?,
+                  ));
+                },
               ),
             ],
           ),

@@ -35,7 +35,8 @@ class NearByStoreBloc extends Bloc<NearByStoreEvent, NearByStoreState> {
       final response = await repository.getNearByStores(
         page: currentPage,
         perPage: event.perPage,
-        searchQuery: event.searchQuery
+        searchQuery: event.searchQuery,
+        category: event.category,
       );
 
       if (response == null) {
@@ -84,7 +85,8 @@ class NearByStoreBloc extends Bloc<NearByStoreEvent, NearByStoreState> {
         final response = await repository.getNearByStores(
           page: currentPage,
           perPage: event.perPage,
-          searchQuery: event.searchQuery
+          searchQuery: event.searchQuery,
+          category: event.category,
         );
 
         if (response == null) {
