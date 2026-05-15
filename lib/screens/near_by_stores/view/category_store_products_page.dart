@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hyper_local/router/app_routes.dart';
+import 'package:hyper_local/screens/home_page/model/sub_category_model.dart';
+import 'package:hyper_local/screens/home_page/repo/sub_category_repo.dart';
 import 'package:hyper_local/screens/near_by_stores/model/near_by_store_model.dart';
 import 'package:hyper_local/screens/product_detail_page/model/product_detail_model.dart';
 import 'package:hyper_local/utils/widgets/custom_circular_progress_indicator.dart';
@@ -31,10 +33,12 @@ class CategoryStoreProductsPage extends StatefulWidget {
 }
 
 class _CategoryStoreProductsPageState extends State<CategoryStoreProductsPage> {
-  List<StoreCategoryData> _categories = [];
-  StoreCategoryData? _selectedCategory;
+  final SubCategoryRepository _subRepo = SubCategoryRepository();
+
+  List<SubCategoryData> _subCategories = [];
+  SubCategoryData? _selectedSubcategory;
   List<ProductData> _products = [];
-  bool _isLoadingCategories = true;
+  bool _isLoadingSubs = true;
   bool _isLoadingProducts = false;
   String? _error;
   String _currentSort = 'relevance';
@@ -43,64 +47,61 @@ class _CategoryStoreProductsPageState extends State<CategoryStoreProductsPage> {
   @override
   void initState() {
     super.initState();
-    _fetchCategories();
+    _fetchParentAndSubs();
   }
 
-  Future<void> _fetchCategories() async {
+  Future<void> _fetchParentAndSubs() async {
     try {
-      final coords = LocationService.getCoordinates();
-      final latitude = coords['latitude'];
-      final longitude = coords['longitude'];
-      final storedLocation = LocationService.getStoredLocation();
-      final zoneId = storedLocation?.zoneId;
-
-      final query = <String, dynamic>{
-        'per_page': 50,
-        'latitude': latitude,
-        'longitude': longitude,
-        if (zoneId != null && zoneId.isNotEmpty) 'zone_id': zoneId,
-      };
-
-      final response = await ApiBaseHelper().getAPICall(
-        '${ApiRoutes.categoryApi}?store_id=${widget.store.id}',
-        query,
+      // First get the selected category to find its parent slug
+      final catResponse = await AppConstant.apiBaseHelper.getAPICall(
+        '${ApiRoutes.categoryApi}?slug=${widget.categorySlug}',
+        {},
       );
-
-      final data = response.data;
-      if (data['success'] == true && data['data'] != null) {
-        final rawData = data['data'];
-        List<dynamic> rawList = [];
-        if (rawData is List) {
-          rawList = rawData;
-        } else if (rawData is Map && rawData['data'] != null) {
-          rawList = rawData['data'] as List<dynamic>;
+      final catData = catResponse.data;
+      String parentSlug = widget.categorySlug;
+      if (catData['success'] == true && catData['data'] != null) {
+        final raw = catData['data'];
+        List<dynamic> catList = [];
+        if (raw is List) catList = raw;
+        else if (raw is Map && raw['data'] != null) catList = raw['data'] as List<dynamic>;
+        if (catList.isNotEmpty && catList.first['parent_slug'] != null && catList.first['parent_slug'].toString().isNotEmpty) {
+          parentSlug = catList.first['parent_slug'].toString();
         }
-        final allCats = rawList.map((c) => StoreCategoryData.fromJson(c as Map<String, dynamic>)).toList();
-        // Filter to only categories that match or are children of the selected category slug
-        final filtered = allCats.where((c) => c.slug == widget.categorySlug || allCats.any((p) => p.id == c.parentId && p.slug == widget.categorySlug)).toList();
-        filtered.sort((a, b) => (b.productCount ?? 0).compareTo(a.productCount ?? 0));
-        setState(() {
-          _categories = filtered;
-          _isLoadingCategories = false;
-        });
-        if (filtered.isNotEmpty) {
-          _selectCategory(filtered.first);
-        }
+      }
+      // Fetch subcategories of the parent
+      final response = await _subRepo.fetchSubCategory(slug: parentSlug, isForAllCategory: false, perPage: 50);
+      final rawData = response['data'];
+      List<dynamic> data = [];
+      if (rawData is List) data = rawData;
+      else if (rawData is Map && rawData['data'] != null) data = rawData['data'] as List<dynamic>;
+      final subs = data.map((d) => SubCategoryData.fromJson(d as Map<String, dynamic>)).toList();
+      setState(() {
+        _subCategories = subs;
+        _isLoadingSubs = false;
+      });
+      // Auto-select the one matching the incoming category slug
+      final match = subs.cast<SubCategoryData?>().firstWhere((s) => s?.slug == widget.categorySlug, orElse: () => null);
+      if (match != null) {
+        _selectSubcategory(match);
+      } else if (subs.isNotEmpty) {
+        _selectSubcategory(subs.first);
       } else {
-        setState(() => _isLoadingCategories = false);
+        // No subcategories - fetch products for the category slug directly
+        _fetchProducts(widget.categorySlug);
       }
     } catch (e) {
-      setState(() { _isLoadingCategories = false; _error = e.toString(); });
+      setState(() { _isLoadingSubs = false; _error = e.toString(); });
+      _fetchProducts(widget.categorySlug);
     }
   }
 
-  void _selectCategory(StoreCategoryData cat) {
+  void _selectSubcategory(SubCategoryData sub) {
     setState(() {
-      _selectedCategory = cat;
+      _selectedSubcategory = sub;
       _products = [];
       _error = null;
     });
-    _fetchProducts(cat.slug ?? '');
+    _fetchProducts(sub.slug ?? '');
   }
 
   Future<void> _fetchProducts(String slug) async {
@@ -122,7 +123,7 @@ class _CategoryStoreProductsPageState extends State<CategoryStoreProductsPage> {
         if (_maxPrice > 0) 'price_max': _maxPrice,
       };
 
-     final response = await AppConstant.apiBaseHelper.getAPICall(ApiRoutes.storeProductsApi, query);
+      final response = await AppConstant.apiBaseHelper.getAPICall(ApiRoutes.storeProductsApi, query);
       final data = response.data;
       if (data['success'] == true && data['data'] != null) {
         final rawList = data['data']['data'] as List<dynamic>? ?? [];
@@ -146,7 +147,7 @@ class _CategoryStoreProductsPageState extends State<CategoryStoreProductsPage> {
       ).type,
       onSortSelected: (SortOption option) {
         setState(() => _currentSort = option.type.name);
-        if (_selectedCategory != null) _fetchProducts(_selectedCategory!.slug ?? '');
+        if (_selectedSubcategory != null) _fetchProducts(_selectedSubcategory!.slug ?? '');
       },
     );
   }
@@ -159,30 +160,55 @@ class _CategoryStoreProductsPageState extends State<CategoryStoreProductsPage> {
         builder: (ctx, setModalState) => Padding(
           padding: EdgeInsets.all(24.w),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('Price Filter', style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold)),
-            SizedBox(height: 16.h),
-            Slider(
-              value: _maxPrice,
-              min: 0, max: 2000,
-              divisions: 40,
-              label: _maxPrice == 0 ? 'All prices' : '₹${_maxPrice.round()}',
-              onChanged: (v) => setModalState(() => _maxPrice = v),
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              Text('Price Filter', style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: Colors.black87)),
+              IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(ctx)),
+            ]),
+            SizedBox(height: 8.h),
+            Text(_maxPrice == 0 ? 'Showing all prices' : 'Up to \u20B9${_maxPrice.round()}', style: TextStyle(fontSize: 14.sp, color: Colors.grey.shade600)),
+            SizedBox(height: 8.h),
+            SliderTheme(
+              data: SliderTheme.of(context).copyWith(
+                activeTrackColor: const Color(0xFF1565C0),
+                inactiveTrackColor: const Color(0xFF1565C0).withValues(alpha: 0.2),
+                thumbColor: const Color(0xFF1565C0),
+                overlayColor: const Color(0xFF1565C0).withValues(alpha: 0.12),
+                valueIndicatorColor: const Color(0xFF1565C0),
+                valueIndicatorTextStyle: const TextStyle(color: Colors.white, fontSize: 12),
+              ),
+              child: Slider(
+                value: _maxPrice, min: 0, max: 2000, divisions: 40,
+                label: _maxPrice == 0 ? 'All' : '\u20B9${_maxPrice.round()}',
+                onChanged: (v) => setModalState(() => _maxPrice = v),
+              ),
             ),
-            Text(_maxPrice == 0 ? 'Showing all prices' : 'Up to ₹${_maxPrice.round()}', style: TextStyle(fontSize: 14.sp, color: Colors.grey)),
-            SizedBox(height: 24.h),
+            SizedBox(height: 16.h),
             Row(children: [
               Expanded(
-                child: OutlinedButton(
-                  onPressed: () { setModalState(() => _maxPrice = 0); },
-                  child: const Text('Clear'),
+                child: SizedBox(
+                  height: 44.h,
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: Colors.grey.shade300),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
+                    ),
+                    onPressed: () { setModalState(() => _maxPrice = 0); Navigator.pop(ctx); if (_selectedSubcategory != null) _fetchProducts(_selectedSubcategory!.slug ?? ''); },
+                    child: Text('Clear', style: TextStyle(fontSize: 14.sp, color: Colors.grey.shade600)),
+                  ),
                 ),
               ),
               SizedBox(width: 12.w),
               Expanded(
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1565C0), foregroundColor: Colors.white, padding: EdgeInsets.symmetric(vertical: 14.h)),
-                  onPressed: () { Navigator.pop(ctx); if (_selectedCategory != null) _fetchProducts(_selectedCategory!.slug ?? ''); },
-                  child: const Text('Apply'),
+                child: SizedBox(
+                  height: 44.h,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1565C0), foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)), elevation: 0,
+                    ),
+                    onPressed: () { Navigator.pop(ctx); if (_selectedSubcategory != null) _fetchProducts(_selectedSubcategory!.slug ?? ''); },
+                    child: Text('Apply', style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600)),
+                  ),
                 ),
               ),
             ]),
@@ -216,43 +242,41 @@ class _CategoryStoreProductsPageState extends State<CategoryStoreProductsPage> {
           ),
         ]),
       ),
-      body: _isLoadingCategories
+      body: _isLoadingSubs
           ? _buildShimmer()
-          : _categories.isEmpty
-              ? Center(child: Text(_error ?? 'No categories available', style: TextStyle(color: Colors.grey)))
-              : Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  _buildCategoryPanel(),
-                  Container(width: 1, color: Theme.of(context).colorScheme.outlineVariant),
-                  Expanded(child: _buildProductPanel()),
-                ]),
+          : Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              _buildSubcategoryPanel(),
+              Container(width: 1, color: Theme.of(context).colorScheme.outlineVariant),
+              Expanded(child: _buildProductPanel()),
+            ]),
     );
   }
 
   Widget _buildShimmer() {
     return Shimmer.fromColors(baseColor: Colors.grey[300]!, highlightColor: Colors.grey[100]!,
-      child: Padding(
-        padding: EdgeInsets.all(16.w),
-        child: Column(children: List.generate(6, (i) => Padding(
-          padding: EdgeInsets.only(bottom: 12.h),
-          child: Container(height: 40.h, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8.r))),
-        ))),
-      ),
+      child: Row(children: [
+        Container(width: 100.w, color: Colors.white, child: Column(children: List.generate(6, (i) => Padding(
+          padding: EdgeInsets.all(12.w),
+          child: Container(height: 44.w, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8.r))),
+        )))),
+        Expanded(child: Container(color: Colors.white)),
+      ]),
     );
   }
 
-  Widget _buildCategoryPanel() {
+  Widget _buildSubcategoryPanel() {
     return SizedBox(
       width: 100.w,
       child: Container(
         color: Theme.of(context).colorScheme.surfaceContainerLow,
         child: ListView.builder(
           padding: EdgeInsets.only(top: 8.h),
-          itemCount: _categories.length,
+          itemCount: _subCategories.length,
           itemBuilder: (context, i) {
-            final cat = _categories[i];
-            final isSelected = _selectedCategory?.slug == cat.slug;
+            final sub = _subCategories[i];
+            final isSelected = _selectedSubcategory?.slug == sub.slug;
             return GestureDetector(
-              onTap: () => _selectCategory(cat),
+              onTap: () => _selectSubcategory(sub),
               child: Container(
                 padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 12.h),
                 color: isSelected ? Colors.white : null,
@@ -264,15 +288,13 @@ class _CategoryStoreProductsPageState extends State<CategoryStoreProductsPage> {
                       border: Border.all(color: isSelected ? const Color(0xFF1565C0) : Colors.grey.shade200, width: isSelected ? 1.5 : 0.5),
                     ),
                     padding: EdgeInsets.all(6.w),
-                    child: CustomImageContainer(imagePath: cat.image ?? '', fit: BoxFit.contain),
+                    child: CustomImageContainer(imagePath: sub.image ?? '', fit: BoxFit.contain),
                   ),
                   SizedBox(height: 4.h),
-                  Text(cat.title ?? '', textAlign: TextAlign.center,
+                  Text(sub.title ?? '', textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 9.sp, fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400, color: isSelected ? const Color(0xFF1565C0) : Colors.black87),
                     maxLines: 2, overflow: TextOverflow.ellipsis,
                   ),
-                  if (cat.productCount != null && cat.productCount! > 0)
-                    Text('${cat.productCount}', style: TextStyle(fontSize: 8.sp, color: Colors.grey.shade400)),
                 ]),
               ),
             );
@@ -284,68 +306,66 @@ class _CategoryStoreProductsPageState extends State<CategoryStoreProductsPage> {
 
   Widget _buildProductPanel() {
     return Column(children: [
-      // Header with sort & filter
-      Container(
-        padding: EdgeInsets.fromLTRB(12.w, 8.h, 12.w, 4.h),
-        color: Colors.white,
-        child: Row(children: [
-          Text(_selectedCategory?.title ?? '', style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: Colors.black)),
-          SizedBox(width: 8.w),
-          Expanded(child: Divider(color: Colors.grey.shade200, thickness: 1)),
-          SizedBox(width: 8.w),
-          InkWell(onTap: _showSortSheet,
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-              decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade300), borderRadius: BorderRadius.circular(6.r)),
-              child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Icon(Icons.swap_vert, size: 14.sp, color: const Color(0xFF1565C0)),
-                SizedBox(width: 4.w),
-                Text('Sort', style: TextStyle(fontSize: 11.sp, color: const Color(0xFF1565C0), fontWeight: FontWeight.w600)),
-              ]),
-            ),
-          ),
-          SizedBox(width: 6.w),
-          InkWell(onTap: _showFilterSheet,
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-              decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade300), borderRadius: BorderRadius.circular(6.r)),
-              child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Icon(Icons.tune, size: 14.sp, color: const Color(0xFF1565C0)),
-                SizedBox(width: 4.w),
-                Text('Filter', style: TextStyle(fontSize: 11.sp, color: const Color(0xFF1565C0), fontWeight: FontWeight.w600)),
-              ]),
-            ),
-          ),
-        ]),
-      ),
-      // Products grid
-      Expanded(
-        child: _isLoadingProducts
-            ? const Center(child: CustomCircularProgressIndicator())
-            : _products.isEmpty
-                ? Center(child: Text(_error ?? 'No products', style: TextStyle(fontSize: 13.sp, color: Colors.grey)))
-                : CustomRefreshIndicator(
-                    onRefresh: () => _fetchProducts(_selectedCategory?.slug ?? ''),
-                    child: GridView.builder(
-                      padding: EdgeInsets.all(10.w),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        mainAxisSpacing: 8.h,
-                        crossAxisSpacing: 8.w,
-                        childAspectRatio: 0.78,
-                      ),
-                      itemCount: _products.length,
-                      itemBuilder: (context, i) => _buildProductCard(_products[i]),
-                    ),
-                  ),
-      ),
+      _buildSortHeader(),
+      Expanded(child: _buildProductGrid()),
     ]);
+  }
+
+  Widget _buildSortHeader() {
+    return Container(
+      padding: EdgeInsets.fromLTRB(12.w, 8.h, 12.w, 4.h),
+      color: Colors.white,
+      child: Row(children: [
+        Text(_selectedSubcategory?.title ?? '', style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: Colors.black)),
+        SizedBox(width: 8.w),
+        Expanded(child: Divider(color: Colors.grey.shade200, thickness: 1)),
+        SizedBox(width: 8.w),
+        InkWell(onTap: _showSortSheet,
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+            decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade300), borderRadius: BorderRadius.circular(6.r)),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              Icon(Icons.swap_vert, size: 14.sp, color: const Color(0xFF1565C0)),
+              SizedBox(width: 4.w), Text('Sort', style: TextStyle(fontSize: 11.sp, color: const Color(0xFF1565C0), fontWeight: FontWeight.w600)),
+            ]),
+          ),
+        ),
+        SizedBox(width: 6.w),
+        InkWell(onTap: _showFilterSheet,
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+            decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade300), borderRadius: BorderRadius.circular(6.r)),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              Icon(Icons.tune, size: 14.sp, color: const Color(0xFF1565C0)),
+              SizedBox(width: 4.w), Text('Filter', style: TextStyle(fontSize: 11.sp, color: const Color(0xFF1565C0), fontWeight: FontWeight.w600)),
+            ]),
+          ),
+        ),
+      ]),
+    );
+  }
+
+  Widget _buildProductGrid() {
+    return _isLoadingProducts
+        ? const Center(child: CustomCircularProgressIndicator())
+        : _products.isEmpty
+            ? Center(child: Text(_error ?? 'No products', style: TextStyle(fontSize: 13.sp, color: Colors.grey)))
+            : CustomRefreshIndicator(
+                onRefresh: () => _fetchProducts(_selectedSubcategory?.slug ?? widget.categorySlug),
+                child: GridView.builder(
+                  padding: EdgeInsets.all(10.w),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2, mainAxisSpacing: 8.h, crossAxisSpacing: 8.w, childAspectRatio: 0.78,
+                  ),
+                  itemCount: _products.length,
+                  itemBuilder: (context, i) => _buildProductCard(_products[i]),
+                ),
+              );
   }
 
   Widget _buildProductCard(ProductData product) {
     final variant = product.variants.isNotEmpty ? product.variants.first : null;
     final price = variant?.price.toDouble() ?? product.price;
-    final specialPrice = variant?.specialPrice.toDouble() ?? product.specialPrice;
     final mrp = variant?.mrp ?? product.mrp;
     final showDiscount = mrp > price && price > 0;
 
@@ -353,8 +373,7 @@ class _CategoryStoreProductsPageState extends State<CategoryStoreProductsPage> {
       onTap: () => GoRouter.of(context).push('/product-detail?slug=${product.slug}'),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12.r),
+          color: Colors.white, borderRadius: BorderRadius.circular(12.r),
           border: Border.all(color: Colors.grey.shade200, width: 0.5),
           boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 4, offset: const Offset(0, 1))],
         ),

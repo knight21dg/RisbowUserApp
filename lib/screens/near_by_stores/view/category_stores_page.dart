@@ -231,23 +231,43 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
         builder: (ctx, setModalState) => Padding(
           padding: EdgeInsets.all(24.w),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('Filter by Distance', style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold)),
-            SizedBox(height: 16.h),
-            Slider(
-              value: _radiusKm,
-              min: 1, max: 50,
-              divisions: 49,
-              label: '${_radiusKm.round()} km',
-              onChanged: (v) => setModalState(() => _radiusKm = v),
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              Text('Filter by Distance', style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: Colors.black87)),
+              IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(ctx)),
+            ]),
+            SizedBox(height: 8.h),
+            Text('${_radiusKm.round()} km radius', style: TextStyle(fontSize: 14.sp, color: Colors.grey.shade600)),
+            SizedBox(height: 8.h),
+            SliderTheme(
+              data: SliderTheme.of(context).copyWith(
+                activeTrackColor: const Color(0xFF1565C0),
+                inactiveTrackColor: const Color(0xFF1565C0).withValues(alpha: 0.2),
+                thumbColor: const Color(0xFF1565C0),
+                overlayColor: const Color(0xFF1565C0).withValues(alpha: 0.12),
+                valueIndicatorColor: const Color(0xFF1565C0),
+                valueIndicatorTextStyle: const TextStyle(color: Colors.white, fontSize: 12),
+              ),
+              child: Slider(
+                value: _radiusKm,
+                min: 1, max: 50,
+                divisions: 49,
+                label: '${_radiusKm.round()} km',
+                onChanged: (v) => setModalState(() => _radiusKm = v),
+              ),
             ),
-            Text('${_radiusKm.round()} km', style: TextStyle(fontSize: 14.sp, color: Colors.grey)),
-            SizedBox(height: 24.h),
+            SizedBox(height: 16.h),
             SizedBox(
               width: double.infinity,
+              height: 44.h,
               child: ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1565C0), foregroundColor: Colors.white, padding: EdgeInsets.symmetric(vertical: 14.h)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1565C0),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
+                  elevation: 0,
+                ),
                 onPressed: () { Navigator.pop(ctx); _fetchStores(); },
-                child: const Text('Apply Filter'),
+                child: Text('Apply Filter', style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600)),
               ),
             ),
           ]),
