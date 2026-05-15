@@ -41,8 +41,8 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     
     try {
       final res = await remoteRepo.addItemToCart(
-        productVariantId: int.parse(event.item.variantId),
-        storeId: int.parse(event.item.vendorId),
+        productVariantId: int.tryParse(event.item.variantId) ?? 0,
+        storeId: int.tryParse(event.item.vendorId) ?? 0,
         quantity: event.item.quantity,
       );
       
@@ -162,23 +162,32 @@ class CartBloc extends Bloc<CartEvent, CartState> {
           case CartSyncAction.add:
             debugPrint('🌐 ADD API → ${item.cartKey}');
             final res = await remoteRepo.addItemToCart(
-              productVariantId: int.parse(item.variantId),
-              storeId: int.parse(item.vendorId),
+              productVariantId: int.tryParse(item.variantId) ?? 0,
+              storeId: int.tryParse(item.vendorId) ?? 0,
               quantity: item.quantity,
             );
             if (res['success'] == true && res['data'] != null) {
-              final data = res['data'];
-              
-              // Handle both direct 'items' and nested 'cart.items'
-              List<dynamic>? itemsList;
-              if (data['items'] != null) {
-                itemsList = data['items'] as List<dynamic>?;
-              } else if (data['cart'] != null && data['cart']['items'] != null) {
-                itemsList = data['cart']['items'] as List<dynamic>?;
+              // Find matching server item to get its ID
+              final List<dynamic>? serverItems;
+              if (res['data'] is Map && (res['data'] as Map).containsKey('items')) {
+                serverItems = (res['data'] as Map)['items'] as List<dynamic>?;
+              } else {
+                serverItems = null;
+              }
+              String? serverId;
+              if (serverItems != null) {
+                for (final serverItem in serverItems) {
+                  if (serverItem is Map &&
+                      serverItem['product_variant_id'].toString() == item.variantId &&
+                      serverItem['store_id'].toString() == item.vendorId) {
+                    serverId = serverItem['id'].toString();
+                    break;
+                  }
+                }
               }
 
-              if (itemsList != null) {
-                final addedServerItem = itemsList.firstWhere(
+              if (serverItems != null) {
+                final addedServerItem = serverItems.firstWhere(
                       (serverItem) =>
                   serverItem['product_variant_id'].toString() == item.variantId &&
                       serverItem['store_id'].toString() == item.vendorId,
