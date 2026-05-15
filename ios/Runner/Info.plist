@@ -37,7 +37,7 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>FIREBASE_REVERSED_CLIENT_ID</string>
+				<string>com.googleusercontent.apps.54191014459-ebfrt8ngh8kc9prb8pimqg3141kqbkrd</string>
 			</array>
 		</dict>
 		<dict>
@@ -45,14 +45,14 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>FIREBASE_ENCODED_APP_ID</string>
+				<string>1:54191014459:ios:00f2c3bfe1fd598105d21e</string>
 			</array>
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>GIDClientID</key>
-    <string>FIREBASE_CLIENT_ID</string>
+	<string>54191014459-ebfrt8ngh8kc9prb8pimqg3141kqbkrd.apps.googleusercontent.com</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>MinimumOSVersion</key>
