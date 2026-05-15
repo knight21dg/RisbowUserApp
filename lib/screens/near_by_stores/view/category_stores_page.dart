@@ -369,11 +369,10 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
                     itemBuilder: (context, i) {
                       if (i == _stores.length) return const Center(child: Padding(padding: EdgeInsets.all(8), child: CustomCircularProgressIndicator()));
                       return _StoreCard(store: _stores[i], onTap: () {
-                        GoRouter.of(context).push(AppRoutes.nearbyStoreDetails, extra: {
-                          'store-slug': _stores[i].slug,
-                          'store-name': _stores[i].name,
-                          'category-slug': _selectedSubcategory?.slug ?? widget.categorySlug,
-                        });
+                        GoRouter.of(context).push(
+                          AppRoutes.categoryStoreProducts,
+                          extra: {'store': _stores[i], 'categorySlug': _selectedSubcategory?.slug ?? widget.categorySlug},
+                        );
                       });
                     },
                   ),
