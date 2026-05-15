@@ -234,9 +234,9 @@ class _ProductDetailPageState extends State<ProductDetailPage>
       try {
         return state.items.firstWhere(
           (item) =>
-              int.parse(item.productId) == productId &&
-              int.parse(item.variantId) == productVariantId &&
-              int.parse(item.vendorId) == storeId,
+              int.tryParse(item.productId) == productId &&
+              int.tryParse(item.variantId) == productVariantId &&
+              int.tryParse(item.vendorId) == storeId,
         );
       } catch (_) {
         return null;
@@ -451,10 +451,10 @@ class _ProductDetailPageState extends State<ProductDetailPage>
                                               Row(
                                                 children: [
                                                   RatingBar.builder(
-                                                    initialRating: double.parse(
+                                                    initialRating: double.tryParse(
                                                       product.ratings
                                                           .toString(),
-                                                    ),
+                                                    ) ?? 0.0,
                                                     minRating: 1,
                                                     direction: Axis.horizontal,
                                                     allowHalfRating: true,

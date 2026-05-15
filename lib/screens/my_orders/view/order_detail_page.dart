@@ -133,14 +133,14 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                                       isDeliveryBoyAssigned: orderData.deliveryBoyId != null,
                                     ),
                                     SizedBox(height: 10.h),
-                                    BillSummaryWidget(
-                                      itemsOriginalPrice: double.parse(orderData.totalPayable!),
-                                      itemsDiscountedPrice: double.parse(orderData.subtotal!),
-                                      itemsSavings: 0,
-                                      deliveryChargeOriginal: double.parse(orderData.deliveryCharge!),
-                                      handlingCharge: double.parse(orderData.handlingCharges!),
-                                      perStoreDropOffFees: double.parse(orderData.perStoreDropOffFee!),
-                                      grandTotal: double.parse(orderData.finalTotal!),
+                                     BillSummaryWidget(
+                                       itemsOriginalPrice: double.tryParse(orderData.totalPayable ?? '0') ?? 0,
+                                       itemsDiscountedPrice: double.tryParse(orderData.subtotal ?? '0') ?? 0,
+                                       itemsSavings: 0,
+                                       deliveryChargeOriginal: double.tryParse(orderData.deliveryCharge ?? '0') ?? 0,
+                                       handlingCharge: double.tryParse(orderData.handlingCharges ?? '0') ?? 0,
+                                       perStoreDropOffFees: double.tryParse(orderData.perStoreDropOffFee ?? '0') ?? 0,
+                                       grandTotal: double.tryParse(orderData.finalTotal ?? '0') ?? 0,
                                       totalSavings: 0,
                                       isFromOrderDetail: true,
                                       downloadInvoice: () {

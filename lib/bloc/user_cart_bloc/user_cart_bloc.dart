@@ -409,8 +409,8 @@ class CartBloc extends Bloc<CartEvent, CartState> {
           case CartSyncAction.add:
             debugPrint('🌐 ADD API → ${item.cartKey}');
             final res = await remoteRepo.addItemToCart(
-              productVariantId: int.parse(item.variantId),
-              storeId: int.parse(item.vendorId),
+              productVariantId: int.tryParse(item.variantId) ?? 0,
+              storeId: int.tryParse(item.vendorId) ?? 0,
               quantity: item.quantity,
             );
             if (res['success'] == true && res['data'] != null) {

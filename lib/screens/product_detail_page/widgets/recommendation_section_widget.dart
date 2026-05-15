@@ -101,7 +101,7 @@ class RecommendationSectionWidget extends StatelessWidget {
             : '0',
         productTags: [],
         estimatedDeliveryTime: productData.estimatedDeliveryTime.toString(),
-        ratings: double.parse(productData.ratings.toString()),
+        ratings: double.tryParse(productData.ratings.toString()) ?? 0.0,
         ratingCount: productData.ratingCount,
         onAddToCart: () {
           if (productData.variants.isEmpty) return;
