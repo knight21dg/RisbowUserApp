@@ -90,6 +90,9 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
       });
       if (categories.isNotEmpty && _selectedSubcategory == null) {
         _selectSubcategory(categories.first);
+      } else if (categories.isEmpty && _selectedSubcategory == null) {
+        // Leaf category with no subcategories - fetch stores for parent directly
+        _fetchStoresForSlug(widget.categorySlug);
       }
     } catch (e) {
       setState(() {
@@ -110,15 +113,51 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
     _fetchStores();
   }
 
+  void _fetchStoresForSlug(String slug) {
+    setState(() {
+      _stores = [];
+      _storePage = 1;
+      _hasMoreStores = true;
+      _storeError = null;
+    });
+    _fetchStoresWithSlug(slug);
+  }
+
+  Future<void> _fetchStoresWithSlug(String slug) async {
+    setState(() => _isLoadingStores = true);
+    try {
+      final response = await _storeRepo.getNearByStores(
+        page: 1, perPage: 15, searchQuery: _searchQuery, category: slug,
+      );
+      if (response != null) {
+        final model = NearByStoreModel.fromJson(response);
+        if (model.success == true && model.data != null) {
+          setState(() {
+            _stores = model.data!.data ?? [];
+            _hasMoreStores = (_stores.length >= 15);
+            _isLoadingStores = false;
+          });
+        } else {
+          setState(() { _stores = []; _isLoadingStores = false; _storeError = model.message; });
+        }
+      } else {
+        setState(() { _stores = []; _isLoadingStores = false; _storeError = 'Failed to load stores'; });
+      }
+    } catch (e) {
+      setState(() { _isLoadingStores = false; _storeError = e.toString(); });
+    }
+  }
+
   Future<void> _fetchStores() async {
-    if (_selectedSubcategory == null) return;
+    final slug = _selectedSubcategory?.slug;
+    if (slug == null && _stores.isEmpty) return;
     setState(() => _isLoadingStores = true);
     try {
       final response = await _storeRepo.getNearByStores(
         page: 1,
         perPage: 15,
         searchQuery: _searchQuery,
-        category: _selectedSubcategory!.slug,
+        category: slug ?? widget.categorySlug,
       );
       if (response != null) {
         final model = NearByStoreModel.fromJson(response);
@@ -140,7 +179,8 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
   }
 
   Future<void> _loadMoreStores() async {
-    if (_isLoadingMoreStores || !_hasMoreStores || _selectedSubcategory == null) return;
+    final slug = _selectedSubcategory?.slug;
+    if (_isLoadingMoreStores || !_hasMoreStores || (slug == null && _stores.isEmpty)) return;
     _isLoadingMoreStores = true;
     _storePage++;
     try {
@@ -148,7 +188,7 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
         page: _storePage,
         perPage: 15,
         searchQuery: _searchQuery,
-        category: _selectedSubcategory!.slug,
+        category: slug ?? widget.categorySlug,
       );
       if (response != null) {
         final model = NearByStoreModel.fromJson(response);
@@ -231,13 +271,13 @@ class _CategoryStoresPageState extends State<CategoryStoresPage> {
         ),
         body: _isLoadingSubcategories
             ? _buildShimmer()
-            : _subcategories.isEmpty
-                ? Center(child: Text(_subError ?? 'No categories found', style: TextStyle(fontSize: 13.sp, color: Colors.grey), textAlign: TextAlign.center))
-                : Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    _buildSubcategoryPanel(),
-                    Container(width: 1, color: Theme.of(context).colorScheme.outlineVariant),
-                    Expanded(child: _buildStorePanel()),
-                  ]),
+            : Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                if (_subcategories.isNotEmpty) ...[
+                  _buildSubcategoryPanel(),
+                  Container(width: 1, color: Theme.of(context).colorScheme.outlineVariant),
+                ],
+                Expanded(child: _buildStorePanel()),
+              ]),
       ),
     );
   }
