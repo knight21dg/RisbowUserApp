@@ -35,7 +35,7 @@ class ProductFeatureSectionWidget extends StatelessWidget {
     if (validProducts.isEmpty) return const SizedBox.shrink();
 
     final rowCount = ((validProducts.length / 2).ceil()).clamp(0, 4);
-    final gridHeight = rowCount * 215.h + (rowCount - 1) * 8.h;
+    final gridHeight = rowCount * 190.h + (rowCount - 1) * 8.h;
 
     return Container(
       color: const Color(0xFFF7F7F7),
@@ -99,7 +99,7 @@ class ProductFeatureSectionWidget extends StatelessWidget {
                 crossAxisCount: 2,
                 mainAxisSpacing: 8.h,
                 crossAxisSpacing: 8.w,
-                childAspectRatio: 0.78,
+                childAspectRatio: 0.72,
               ),
               itemCount: validProducts.length > 8 ? 8 : validProducts.length,
               itemBuilder: (context, index) {

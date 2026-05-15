@@ -60,12 +60,12 @@ class DynamicHomepageSectionWidget extends StatelessWidget {
   double _getSectionHeight(String sectionType) {
     final type = sectionType.toLowerCase();
     if (type == 'deals' || type == 'deal_of_day' || type == 'special_products' || type == 'sale' || section.title.toLowerCase().contains('deal')) {
-      return 300.h;
+      return 240.h;
     }
     if (type == 'featured' || type == 'special' || section.title.toLowerCase().contains('featured')) {
-      return 200.h;
+      return 210.h;
     }
-    return 260.h;
+    return 210.h;
   }
 
   double _getSectionItemSpacing(String sectionType) {
@@ -190,12 +190,12 @@ class DynamicHomepageSectionWidget extends StatelessWidget {
             padding: EdgeInsets.fromLTRB(8.w, 6.w, 8.w, 2.w),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
               Text(product.title, style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w600, color: Colors.black, height: 1.2), maxLines: 2, overflow: TextOverflow.ellipsis),
-              SizedBox(height: 2.h),
+              SizedBox(height: 1.h),
               Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
                 Text('₹${product.price.toStringAsFixed(0)}', style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: Colors.black)),
                 if (showDiscount) ...[SizedBox(width: 4.w), Text('₹${product.mrp.toStringAsFixed(0)}', style: TextStyle(fontSize: 10.sp, color: Colors.grey.shade400, decoration: TextDecoration.lineThrough))],
               ]),
-              SizedBox(height: 2.h),
+              SizedBox(height: 1.h),
               Row(children: [
                 if (showDiscount) Text('$discount% off', style: TextStyle(fontSize: 9.sp, color: const Color(0xFF2E7D32), fontWeight: FontWeight.w700)),
                 const Spacer(),
@@ -238,12 +238,12 @@ class DynamicHomepageSectionWidget extends StatelessWidget {
             padding: EdgeInsets.fromLTRB(8.w, 6.w, 8.w, 2.w),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
               Text(product.title, style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w600, color: Colors.black, height: 1.2), maxLines: 2, overflow: TextOverflow.ellipsis),
-              SizedBox(height: 2.h),
+              SizedBox(height: 1.h),
               Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
                 Text('₹${product.price.toStringAsFixed(0)}', style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: Colors.black)),
                 if (showDiscount) ...[SizedBox(width: 4.w), Text('₹${product.mrp.toStringAsFixed(0)}', style: TextStyle(fontSize: 10.sp, color: Colors.grey.shade400, decoration: TextDecoration.lineThrough))],
               ]),
-              SizedBox(height: 2.h),
+              SizedBox(height: 1.h),
               Row(children: [
                 if (showDiscount) Text('$discount% off', style: TextStyle(fontSize: 9.sp, color: const Color(0xFF2E7D32), fontWeight: FontWeight.w700)),
                 const Spacer(),
@@ -264,7 +264,7 @@ class DynamicHomepageSectionWidget extends StatelessWidget {
     return GestureDetector(
       onTap: () => GoRouter.of(context).push('/product-detail?slug=${product.slug}'),
       child: Container(
-        width: 140.w,
+        width: 135.w,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12.r),
@@ -301,19 +301,28 @@ class DynamicHomepageSectionWidget extends StatelessWidget {
                 ],
               ),
             ),
-            Padding(
-              padding: EdgeInsets.fromLTRB(8.w, 6.w, 8.w, 2.w),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    product.title,
-                    style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w600, color: Colors.black, height: 1.2),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  SizedBox(height: 2.h),
+Padding(
+             padding: EdgeInsets.fromLTRB(6.w, 4.w, 6.w, 2.w),
+             child: Column(
+               crossAxisAlignment: CrossAxisAlignment.start,
+               mainAxisSize: MainAxisSize.min,
+               children: [
+                 Text(product.title, style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w600, color: Colors.black, height: 1.2), maxLines: 2, overflow: TextOverflow.ellipsis),
+                 SizedBox(height: 1.h),
+                 Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                   Text('₹${product.price.toStringAsFixed(0)}', style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: Colors.black)),
+                   if (showDiscount) ...[SizedBox(width: 4.w), Text('₹${product.mrp.toStringAsFixed(0)}', style: TextStyle(fontSize: 10.sp, color: Colors.grey.shade400, decoration: TextDecoration.lineThrough))],
+                 ]),
+                 SizedBox(height: 1.h),
+                 Row(children: [
+                   if (showDiscount) Text('$discount% off', style: TextStyle(fontSize: 9.sp, color: const Color(0xFF2E7D32), fontWeight: FontWeight.w700)),
+                   const Spacer(),
+                   Container(width: 26.w, height: 26.w, decoration: BoxDecoration(color: const Color(0xFF1565C0), borderRadius: BorderRadius.circular(6.r)),
+                     child: Icon(Icons.add, color: Colors.white, size: 16.w)),
+                 ]),
+               ]),
+             ),
+                  SizedBox(height: 1.h),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
@@ -324,7 +333,7 @@ class DynamicHomepageSectionWidget extends StatelessWidget {
                       ],
                     ],
                   ),
-                  SizedBox(height: 2.h),
+                  SizedBox(height: 1.h),
                   Row(
                     children: [
                       if (showDiscount)
@@ -340,10 +349,7 @@ class DynamicHomepageSectionWidget extends StatelessWidget {
                 ],
               ),
             ),
-          ],
-        ),
-      ),
-    );
+          );
   }
 
   Widget _buildCategoryCard(BuildContext context, HomepageProduct product, int index) {
@@ -457,12 +463,12 @@ class DynamicHomepageSectionWidget extends StatelessWidget {
             padding: EdgeInsets.fromLTRB(8.w, 6.w, 8.w, 2.w),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
               Text(product.title, style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w600, color: Colors.black, height: 1.2), maxLines: 2, overflow: TextOverflow.ellipsis),
-              SizedBox(height: 2.h),
+              SizedBox(height: 1.h),
               Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
                 Text('₹${product.price.toStringAsFixed(0)}', style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: Colors.black)),
                 if (showDiscount) ...[SizedBox(width: 4.w), Text('₹${product.mrp.toStringAsFixed(0)}', style: TextStyle(fontSize: 10.sp, color: Colors.grey.shade400, decoration: TextDecoration.lineThrough))],
               ]),
-              SizedBox(height: 2.h),
+              SizedBox(height: 1.h),
               Row(children: [
                 if (showDiscount) Text('$discount% off', style: TextStyle(fontSize: 9.sp, color: const Color(0xFF2E7D32), fontWeight: FontWeight.w700)),
                 const Spacer(),
