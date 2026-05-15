@@ -83,7 +83,7 @@ class YouMightAlsoLikeProductWidget extends StatelessWidget {
                       productTags: [],
                       estimatedDeliveryTime: product.estimatedDeliveryTime.toString(),
                       assetImage: '',
-                      ratings: double.parse(product.ratings.toString()),
+                      ratings: (double.tryParse(product.ratings.toString()) ?? 0.0),
                       ratingCount: product.ratingCount,
                       onAddToCart: (){
                         if (product.variants.length > 1) {
