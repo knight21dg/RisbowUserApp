@@ -37,11 +37,13 @@ import '../../../utils/widgets/custom_variant_selector_bottom_sheet.dart';
 class NearbyStoreDetails extends StatelessWidget {
   final String storeSlug;
   final String storeName;
+  final String? initialCategorySlug;
 
   const NearbyStoreDetails({
     super.key,
     required this.storeSlug,
     required this.storeName,
+    this.initialCategorySlug,
   });
 
   @override
@@ -59,6 +61,7 @@ class NearbyStoreDetails extends StatelessWidget {
       child: _NearbyStoreDetailsView(
         storeSlug: storeSlug,
         storeName: storeName,
+        initialCategorySlug: initialCategorySlug,
       ),
     );
   }
@@ -67,10 +70,12 @@ class NearbyStoreDetails extends StatelessWidget {
 class _NearbyStoreDetailsView extends StatefulWidget {
   final String storeSlug;
   final String storeName;
+  final String? initialCategorySlug;
 
   const _NearbyStoreDetailsView({
     required this.storeSlug,
     required this.storeName,
+    this.initialCategorySlug,
   });
 
   @override
@@ -245,6 +250,13 @@ class _NearbyStoreDetailsState extends State<_NearbyStoreDetailsView> {
           _hasCategories = _categories.isNotEmpty;
           _isLoadingCategories = false;
         });
+        // Auto-select initial category if provided
+        if (widget.initialCategorySlug != null && widget.initialCategorySlug!.isNotEmpty && _categories.isNotEmpty) {
+          final matchIndex = _categories.indexWhere((c) => c.slug == widget.initialCategorySlug);
+          if (matchIndex >= 0) {
+            _onCategorySelected(matchIndex, _categories[matchIndex].slug ?? '', _categories[matchIndex].title ?? '');
+          }
+        }
         debugPrint('STORE PAGE: _fetchCategories got ${_categories.length} categories');
       } else {
         setState(() {

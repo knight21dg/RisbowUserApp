@@ -857,8 +857,10 @@ class MyAppRoute {
               map['store-slug'] ?? queryParams['store-slug'] ?? '';
           final storeName =
               map['store-name'] ?? queryParams['store-name'] ?? '';
+          final categorySlug =
+              map['category-slug'] ?? queryParams['category-slug'] ?? '';
           return platformPage(
-            NearbyStoreDetails(storeSlug: storeSlug, storeName: storeName),
+            NearbyStoreDetails(storeSlug: storeSlug, storeName: storeName, initialCategorySlug: categorySlug as String?),
           );
         },
       ),
