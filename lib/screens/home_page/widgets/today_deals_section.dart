@@ -191,99 +191,59 @@ class _TodayDealCardState extends State<_TodayDealCard> {
     return GestureDetector(
       onTap: widget.onTap,
       child: Container(
-        width: 150.w,
+        width: 140.w,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(12.r),
           border: Border.all(color: Colors.grey.shade200, width: 0.5),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 4, offset: const Offset(0, 1))],
         ),
         clipBehavior: Clip.antiAlias,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Image
-            Expanded(
-              child: Stack(
-                children: [
-                  Container(
-                    color: const Color(0xFFF5F5F5),
-                    child: CachedNetworkImage(
-                      imageUrl: deal.banner ?? deal.productImage ?? '',
-                      width: double.infinity,
-                      fit: BoxFit.contain,
-                      placeholder: (_, __) => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-                      errorWidget: (_, __, ___) => Icon(Icons.image_not_supported, size: 30.w, color: Colors.grey[400]),
-                    ),
-                  ),
-                  if (discount > 0)
-                    Positioned(
-                      top: 6.w,
-                      left: 6.w,
-                      child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 3.h),
-                        decoration: BoxDecoration(color: const Color(0xFFE53935), borderRadius: BorderRadius.circular(4.r)),
-                        child: Text('-$discount%', style: TextStyle(fontSize: 11.sp, color: Colors.white, fontWeight: FontWeight.bold)),
-                      ),
-                    ),
-                ],
-              ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+          AspectRatio(aspectRatio: 1, child: Stack(children: [
+            CachedNetworkImage(
+              imageUrl: deal.banner ?? deal.productImage ?? '',
+              fit: BoxFit.cover, width: double.infinity, height: double.infinity,
+              placeholder: (_, __) => Container(color: Colors.grey.shade100, child: Center(child: CircularProgressIndicator(strokeWidth: 2))),
+              errorWidget: (_, __, ___) => Container(color: Colors.grey.shade100, child: Icon(Icons.image_outlined, size: 30, color: Colors.grey.shade300)),
             ),
-            // Content
-            Padding(
-              padding: EdgeInsets.all(8.w),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    deal.productName ?? '',
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w600, color: Colors.black, height: 1.2),
-                  ),
-                  SizedBox(height: 3.h),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        '${AppConstant.currency}${deal.discountedPrice?.toStringAsFixed(0) ?? ''}',
-                        style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.bold, color: Colors.black),
-                      ),
-                      if (deal.originalPrice != null && deal.originalPrice! > (deal.discountedPrice ?? 0)) ...[
-                        SizedBox(width: 4.w),
-                        Text(
-                          '${AppConstant.currency}${deal.originalPrice?.toStringAsFixed(0) ?? ''}',
-                          style: TextStyle(fontSize: 11.sp, color: Colors.grey.shade400, decoration: TextDecoration.lineThrough),
-                        ),
-                      ],
-                    ],
-                  ),
-                  SizedBox(height: 4.h),
-                  // Timer
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 3.h),
-                    decoration: BoxDecoration(
-                      color: isUrgent ? Colors.red.shade50 : Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(4.r),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.access_time, size: 11.sp, color: isUrgent ? const Color(0xFFE53935) : Colors.grey.shade500),
-                        SizedBox(width: 3.w),
-                        Text(
-                          '${_timeRemaining.inHours}h ${_timeRemaining.inMinutes.remainder(60)}m ${_timeRemaining.inSeconds.remainder(60)}s',
-                          style: TextStyle(fontSize: 10.sp, color: isUrgent ? const Color(0xFFE53935) : Colors.grey.shade600, fontWeight: FontWeight.w600),
-                        ),
-                      ],
-                    ),
-                  ),
+            if (discount > 0)
+              Positioned(bottom: 6.w, right: 6.w, child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 2.h),
+                decoration: BoxDecoration(color: const Color(0xFFE53935), borderRadius: BorderRadius.circular(4.r)),
+                child: Text('-$discount%', style: TextStyle(fontSize: 9.sp, color: Colors.white, fontWeight: FontWeight.bold)),
+              )),
+          ])),
+          Padding(
+            padding: EdgeInsets.fromLTRB(8.w, 6.w, 8.w, 2.w),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+              Text(deal.productName ?? '', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w600, color: Colors.black, height: 1.2), maxLines: 2, overflow: TextOverflow.ellipsis),
+              SizedBox(height: 2.h),
+              Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                Text('${AppConstant.currency}${deal.discountedPrice?.toStringAsFixed(0) ?? ''}', style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: Colors.black)),
+                if (deal.originalPrice != null && deal.originalPrice! > (deal.discountedPrice ?? 0)) ...[
+                  SizedBox(width: 4.w),
+                  Text('${AppConstant.currency}${deal.originalPrice?.toStringAsFixed(0) ?? ''}', style: TextStyle(fontSize: 10.sp, color: Colors.grey.shade400, decoration: TextDecoration.lineThrough)),
                 ],
-              ),
-            ),
-          ],
-        ),
+              ]),
+              SizedBox(height: 2.h),
+              Row(children: [
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 2.h),
+                  decoration: BoxDecoration(color: isUrgent ? Colors.red.shade50 : Colors.grey.shade100, borderRadius: BorderRadius.circular(3.r)),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    Icon(Icons.access_time, size: 10.sp, color: isUrgent ? const Color(0xFFE53935) : Colors.grey.shade500),
+                    SizedBox(width: 2.w),
+                    Text('${_timeRemaining.inHours}h ${_timeRemaining.inMinutes.remainder(60)}m', style: TextStyle(fontSize: 9.sp, color: isUrgent ? const Color(0xFFE53935) : Colors.grey.shade600, fontWeight: FontWeight.w600)),
+                  ]),
+                ),
+                const Spacer(),
+                Container(width: 26.w, height: 26.w, decoration: BoxDecoration(color: const Color(0xFF1565C0), borderRadius: BorderRadius.circular(6.r)),
+                  child: Icon(Icons.add, color: Colors.white, size: 16.w)),
+              ]),
+            ]),
+          ),
+        ]),
       ),
     );
   }
