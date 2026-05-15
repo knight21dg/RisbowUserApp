@@ -1,0 +1,17 @@
+.dart_tool/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+*.iml
+.idea/
+.vscode/
+*.log
+*.iws
+*.ipr
+.DS_Store
+android/.gradle/
+android/.kotlin/
+android/build/
+ios/Pods/
+ios/.symlinks/
+*.lock
