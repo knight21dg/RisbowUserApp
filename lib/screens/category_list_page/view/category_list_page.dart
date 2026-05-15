@@ -165,8 +165,11 @@ class _CategoryListViewState extends State<_CategoryListView> {
             _isLoadingSubcategories = false;
           });
         } else {
-          // No subcategories - directly show products for this category
-          _onSubcategoryTap(parentCategory, -1);
+          // No subcategories - show stores for this category
+          GoRouter.of(context).push(
+            AppRoutes.nearbyStores,
+            extra: {'categorySlug': parentCategory.slug, 'categoryTitle': parentCategory.title},
+          );
           setState(() {
             _subcategories = [];
             _isLoadingSubcategories = false;
@@ -326,13 +329,10 @@ class _CategoryListViewState extends State<_CategoryListView> {
 
   /// When a subcategory is tapped: switch to product view
   void _onSubcategoryTap(SubCategoryData subcategory, int index) {
-    setState(() {
-      _isShowingProducts = true;
-      _selectedSubcategory = subcategory;
-      _selectedSubcategoryIndex = index;
-      _currentSortType = SortType.relevance; // Reset sort on subcategory change
-    });
-    _fetchProducts(subcategory);
+    GoRouter.of(context).push(
+      AppRoutes.nearbyStores,
+      extra: {'categorySlug': subcategory.slug, 'categoryTitle': subcategory.title},
+    );
   }
 
   void _showSortBottomSheet() {
