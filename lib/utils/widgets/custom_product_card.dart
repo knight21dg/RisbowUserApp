@@ -496,9 +496,9 @@ class CustomProductCard extends StatelessWidget {
   }) {
     final effectiveSpecialPrice = double.tryParse(specialPrice) ?? 0;
     final effectiveOriginalPrice = double.tryParse(price) ?? 0;
-    final showDiscount = effectiveOriginalPrice > effectiveSpecialPrice && effectiveSpecialPrice > 0;
+    final showDiscount = effectiveOriginalPrice > effectiveSpecialPrice && effectiveSpecialPrice > 0 && effectiveOriginalPrice > 0;
     
-    final displayPrice = effectiveSpecialPrice > 0 ? effectiveSpecialPrice : (effectiveOriginalPrice > 0 ? effectiveOriginalPrice : 0);
+    final displayPrice = showDiscount ? effectiveSpecialPrice : (effectiveOriginalPrice > 0 ? effectiveOriginalPrice : 0);
     final displayText = displayPrice > 0 ? '${AppConstant.currency}${displayPrice.toStringAsFixed(0)}' : 'N/A';
 
     return Row(
