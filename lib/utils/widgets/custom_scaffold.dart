@@ -93,7 +93,7 @@ class _CustomScaffoldState extends State<CustomScaffold> with TickerProviderStat
     // Slide animation with smoother curve
     _slideAnimation = Tween<double>(
       begin: -100.0,
-      end: 180.0, // Moved down 50px more (from 130 to 180)
+      end: 100.0,
     ).animate(CurvedAnimation(
       parent: _slideController,
       curve: Curves.easeOutCubic,

@@ -401,13 +401,13 @@ class _CategoryStoreProductsPageState extends State<CategoryStoreProductsPage> {
             ? Center(child: Text(_error ?? 'No products', style: TextStyle(fontSize: 13.sp, color: Colors.grey)))
             : CustomRefreshIndicator(
                 onRefresh: () => _fetchProducts(_selectedSubcategory?.slug ?? widget.categorySlug),
-                child: ListView.builder(
+                child: GridView.builder(
                   padding: EdgeInsets.all(10.w),
-                  itemCount: _products.length,
-                  itemBuilder: (context, i) => Padding(
-                    padding: EdgeInsets.only(bottom: 10.h),
-                    child: _buildProductCard(_products[i]),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2, mainAxisSpacing: 8.h, crossAxisSpacing: 8.w, childAspectRatio: 0.52,
                   ),
+                  itemCount: _products.length,
+                  itemBuilder: (context, i) => _buildProductCard(_products[i]),
                 ),
               );
   }
