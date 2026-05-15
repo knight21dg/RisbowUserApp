@@ -52,22 +52,20 @@ class _CategoryStoreProductsPageState extends State<CategoryStoreProductsPage> {
 
   Future<void> _fetchParentAndSubs() async {
     try {
-      // First get the selected category to find its parent slug
-      final catResponse = await AppConstant.apiBaseHelper.getAPICall(
-        '${ApiRoutes.categoryApi}?slug=${widget.categorySlug}',
-        {},
-      );
-      final catData = catResponse.data;
+      // Find the parent slug from store's categories
       String parentSlug = widget.categorySlug;
-      if (catData['success'] == true && catData['data'] != null) {
-        final raw = catData['data'];
-        List<dynamic> catList = [];
-        if (raw is List) catList = raw;
-        else if (raw is Map && raw['data'] != null) catList = raw['data'] as List<dynamic>;
-        if (catList.isNotEmpty && catList.first['parent_slug'] != null && catList.first['parent_slug'].toString().isNotEmpty) {
-          parentSlug = catList.first['parent_slug'].toString();
+      if (widget.store.categories != null && widget.store.categories!.isNotEmpty) {
+        // The store's categories are parent-level. Use the first one as the parent.
+        parentSlug = widget.store.categories!.first.slug ?? widget.categorySlug;
+        // If the current slug is already in the store's categories, use it as parent
+        // (it's a parent-level category itself, like "Grocery")
+        final hasExact = widget.store.categories!.any((c) => c.slug == widget.categorySlug);
+        if (!hasExact) {
+          // Current slug is a subcategory - use the store's first category as parent
+          parentSlug = widget.store.categories!.first.slug ?? widget.categorySlug;
         }
       }
+
       // Fetch subcategories of the parent
       final response = await _subRepo.fetchSubCategory(slug: parentSlug, isForAllCategory: false, perPage: 50);
       final rawData = response['data'];
@@ -86,7 +84,6 @@ class _CategoryStoreProductsPageState extends State<CategoryStoreProductsPage> {
       } else if (subs.isNotEmpty) {
         _selectSubcategory(subs.first);
       } else {
-        // No subcategories - fetch products for the category slug directly
         _fetchProducts(widget.categorySlug);
       }
     } catch (e) {
@@ -235,7 +232,25 @@ class _CategoryStoreProductsPageState extends State<CategoryStoreProductsPage> {
             ),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(widget.store.name ?? '', style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600, color: Colors.black), maxLines: 1, overflow: TextOverflow.ellipsis),
+              Row(children: [
+                Flexible(child: Text(widget.store.name ?? '', style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600, color: Colors.black), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                if (_subCategories.isNotEmpty && _selectedSubcategory != null) ...[
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 4.w),
+                    child: Icon(Icons.chevron_right, size: 14.sp, color: Colors.grey.shade400),
+                  ),
+                  Flexible(
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1565C0).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(4.r),
+                      ),
+                      child: Text(_selectedSubcategory!.title ?? '', style: TextStyle(fontSize: 10.sp, color: const Color(0xFF1565C0), fontWeight: FontWeight.w600), maxLines: 1, overflow: TextOverflow.ellipsis),
+                    ),
+                  ),
+                ],
+              ]),
               if (widget.store.distance != null && widget.store.distance! > 0)
                 Text('${widget.store.distance!.toStringAsFixed(1)} km', style: TextStyle(fontSize: 10.sp, color: Colors.grey.shade500)),
             ]),
