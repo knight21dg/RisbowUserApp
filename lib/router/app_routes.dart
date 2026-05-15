@@ -22,6 +22,7 @@ import 'package:hyper_local/screens/my_orders/view/rate_your_exp_comments.dart';
 import 'package:hyper_local/screens/notification_page/view/notification_page.dart';
 import 'package:hyper_local/screens/my_orders/view/rate_your_exp_page.dart';
 import 'package:hyper_local/screens/near_by_stores/view/nearby_store_details.dart';
+import 'package:hyper_local/screens/near_by_stores/view/category_stores_page.dart';
 import 'package:hyper_local/screens/near_by_stores/view/nearyby_stores_page.dart';
 import 'package:hyper_local/screens/product_detail_page/view/faq_list_page/faq_list_page.dart';
 import 'package:hyper_local/screens/product_detail_page/view/review_rating_list_page/review_rating_list_page.dart';
@@ -130,6 +131,7 @@ class AppRoutes {
   static const String policyPage = '/policy-page';
   static const String supportPage = '/support-page';
   static const String nearbyStores = '/near-by-store';
+  static const String categoryStores = '/category-stores';
   static const String nearbyStoreDetails = '/near-by-store-details';
   static const String rateYourExp = '/rate-your-exp';
   static const String rateYourExpComments = '/rate-your-exp-comments';
@@ -441,6 +443,17 @@ class MyAppRoute {
                   final extra = state.extra as Map<String, dynamic>?;
                   return platformPage(NearbyStoresPage(
                     categorySlug: extra?['categorySlug'] as String?,
+                    categoryTitle: extra?['categoryTitle'] as String?,
+                  ));
+                },
+              ),
+              GoRoute(
+                name: 'category-stores',
+                path: AppRoutes.categoryStores,
+                pageBuilder: (context, state) {
+                  final extra = state.extra as Map<String, dynamic>?;
+                  return platformPage(CategoryStoresPage(
+                    categorySlug: extra?['categorySlug'] as String? ?? '',
                     categoryTitle: extra?['categoryTitle'] as String?,
                   ));
                 },

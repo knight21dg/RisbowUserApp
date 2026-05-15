@@ -167,7 +167,7 @@ class _CategoryListViewState extends State<_CategoryListView> {
         } else {
           // No subcategories - show stores for this category
           GoRouter.of(context).push(
-            AppRoutes.nearbyStores,
+            AppRoutes.categoryStores,
             extra: {'categorySlug': parentCategory.slug, 'categoryTitle': parentCategory.title},
           );
           setState(() {
@@ -330,7 +330,7 @@ class _CategoryListViewState extends State<_CategoryListView> {
   /// When a subcategory is tapped: switch to product view
   void _onSubcategoryTap(SubCategoryData subcategory, int index) {
     GoRouter.of(context).push(
-      AppRoutes.nearbyStores,
+      AppRoutes.categoryStores,
       extra: {'categorySlug': subcategory.slug, 'categoryTitle': subcategory.title},
     );
   }
