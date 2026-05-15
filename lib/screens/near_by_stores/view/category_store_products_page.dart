@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hyper_local/router/app_routes.dart';
@@ -12,11 +13,16 @@ import 'package:hyper_local/utils/widgets/custom_product_card.dart';
 import 'package:hyper_local/utils/widgets/custom_scaffold.dart';
 import 'package:hyper_local/utils/widgets/custom_refresh_indicator.dart';
 import 'package:hyper_local/utils/widgets/custom_sorting_bottom_sheet.dart';
+import 'package:hyper_local/utils/widgets/custom_variant_selector_bottom_sheet.dart';
 import 'package:shimmer/shimmer.dart';
+import '../../../bloc/user_cart_bloc/user_cart_bloc.dart';
+import '../../../bloc/user_cart_bloc/user_cart_event.dart';
 import '../../../config/api_base_helper.dart';
 import '../../../config/api_routes.dart';
 import '../../../config/constant.dart';
 import '../../../model/sorting_model/sorting_model.dart';
+import '../../../model/user_cart_model/cart_sync_action.dart';
+import '../../../model/user_cart_model/user_cart.dart';
 import '../../../services/location/location_service.dart';
 
 class CategoryStoreProductsPage extends StatefulWidget {
@@ -435,8 +441,76 @@ class _CategoryStoreProductsPageState extends State<CategoryStoreProductsPage> {
       minQty: product.minimumOrderQuantity,
       totalAllowedQuantity: product.totalAllowedQuantity,
       variantCount: product.variants.length,
-      onVariantSelectorRequested: null,
-      onAddToCart: () {},
+      onVariantSelectorRequested: product.variants.length > 1
+          ? () => showVariantBottomSheet(
+                variantsList: product.variants,
+                productData: product,
+                productImage: product.mainImage,
+                quantityStepSize: product.quantityStepSize,
+                context: context,
+              )
+          : null,
+      onAddToCart: () => _handleAddToCart(product),
     );
+  }
+
+  void _handleAddToCart(ProductData product) {
+    if (product.variants.isEmpty) {
+      final price = product.price > 0 ? product.price : 0.0;
+      final specialPrice = product.specialPrice > 0 ? product.specialPrice : price;
+      final stock = product.stock > 0 ? product.stock : 100;
+      final isAvailable = product.available && product.stock > 0;
+      if (!isAvailable) return;
+      final item = UserCart(
+        productId: product.id.toString(),
+        variantId: '0',
+        variantName: 'Default',
+        vendorId: '0',
+        name: product.title,
+        image: product.mainImage,
+        price: specialPrice > 0 ? specialPrice : price,
+        originalPrice: price,
+        quantity: 1,
+        serverCartItemId: null,
+        syncAction: CartSyncAction.add,
+        updatedAt: DateTime.now(),
+        minQty: 1,
+        maxQty: stock,
+        isOutOfStock: false,
+        isSynced: false,
+      );
+      context.read<CartBloc>().add(AddToCart(item, context));
+      return;
+    }
+    if (product.variants.length > 1) {
+      showVariantBottomSheet(
+        variantsList: product.variants,
+        productData: product,
+        productImage: product.mainImage,
+        quantityStepSize: product.quantityStepSize,
+        context: context,
+      );
+    } else {
+      final defaultVariant = product.variants.first;
+      final item = UserCart(
+        productId: product.id.toString(),
+        variantId: defaultVariant.id.toString(),
+        variantName: defaultVariant.title.toString(),
+        vendorId: defaultVariant.storeId.toString(),
+        name: product.title,
+        image: product.mainImage,
+        price: defaultVariant.specialPrice.toDouble(),
+        originalPrice: defaultVariant.price.toDouble(),
+        quantity: product.quantityStepSize,
+        serverCartItemId: null,
+        syncAction: CartSyncAction.add,
+        updatedAt: DateTime.now(),
+        minQty: product.minimumOrderQuantity,
+        maxQty: product.totalAllowedQuantity,
+        isOutOfStock: defaultVariant.stock <= 0,
+        isSynced: false,
+      );
+      context.read<CartBloc>().add(AddToCart(item, context));
+    }
   }
 }
