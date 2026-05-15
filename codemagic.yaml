@@ -1,0 +1,47 @@
+workflows:
+  ios-build:
+    name: iOS Build
+    max_build_duration: 120
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+      vars:
+        APP_ID: com.knight21.risbow
+        APP_NAME: Hyper Local
+        GOOGLE_MAPS_IOS_API_KEY: ""
+      groups:
+        - app_store_credentials
+        - firebase_ios
+    cache:
+      cache_paths:
+        - ~/.pub-cache
+    scripts:
+      - name: Set up debug GoogleService-Info.plist
+        script: |
+          if [ -n "$GOOGLE_SERVICE_INFO_BASE64" ]; then
+            echo $GOOGLE_SERVICE_INFO_BASE64 | base64 --decode > ios/Runner/GoogleService-Info.plist
+          fi
+      - name: Set up iOS env config
+        script: |
+          if [ -n "$GOOGLE_MAPS_IOS_API_KEY" ] && [ "$GOOGLE_MAPS_IOS_API_KEY" != "" ]; then
+            plutil -replace GMSServicesApiKey -string "$GOOGLE_MAPS_IOS_API_KEY" ios/Runner/Info.plist 2>/dev/null || true
+          fi
+      - name: Install Flutter dependencies
+        script: flutter pub get
+      - name: Install CocoaPods
+        script: |
+          cd ios && pod install --repo-update
+      - name: Build iOS
+        script: |
+          flutter build ios --no-codesign
+    artifacts:
+      - build/ios/iphoneos/*.app
+      - build/ios/iphonesimulator/*.app
+    publishing:
+      email:
+        recipients:
+          - vijaypardhu17@gmail.com
+        notify:
+          success: true
+          failure: true
