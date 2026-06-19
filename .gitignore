@@ -31,3 +31,9 @@ Pods/
 .vscode/
 *.swp
 *.swo
+
+# Secrets
+android/key.properties
+ios/Runner/GoogleService-Info.plist
+android/app/google-services.json
+*.keystore

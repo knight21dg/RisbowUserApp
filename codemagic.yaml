@@ -1,6 +1,6 @@
 workflows:
   ios-build:
-    name: iOS Build
+    name: iOS Build & TestFlight
     max_build_duration: 120
     environment:
       flutter: stable
@@ -9,15 +9,17 @@ workflows:
       vars:
         APP_ID: com.knight21.risbow
         APP_NAME: Hyper Local
+        BUNDLE_ID: com.knight21.risbow
         GOOGLE_MAPS_IOS_API_KEY: ""
       groups:
         - app_store_credentials
         - firebase_ios
+        - app_config
     cache:
       cache_paths:
         - ~/.pub-cache
     scripts:
-      - name: Set up debug GoogleService-Info.plist
+      - name: Set up GoogleService-Info.plist
         script: |
           if [ -n "$GOOGLE_SERVICE_INFO_BASE64" ]; then
             echo $GOOGLE_SERVICE_INFO_BASE64 | base64 --decode > ios/Runner/GoogleService-Info.plist
@@ -32,12 +34,75 @@ workflows:
       - name: Install CocoaPods
         script: |
           cd ios && pod install --repo-update
-      - name: Build iOS
+      - name: Build iOS for TestFlight
         script: |
-          flutter build ios --no-codesign
+          flutter build ios --release \
+            --build-name=$(cat pubspec.yaml | grep "version:" | head -1 | awk '{print $2}' | cut -d'+' -f1) \
+            --build-number=$(cat pubspec.yaml | grep "version:" | head -1 | awk '{print $2}' | cut -d'+' -f2)
     artifacts:
       - build/ios/iphoneos/*.app
-      - build/ios/iphonesimulator/*.app
+      - build/ios/ipa/*.ipa
+    publishing:
+      app_store_connect:
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        key_id: $APP_STORE_CONNECT_KEY_ID
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+        submit_to_testflight: true
+        beta_groups:
+          - Internal Testers
+      email:
+        recipients:
+          - vijaypardhu17@gmail.com
+        notify:
+          success: true
+          failure: true
+
+  android-build:
+    name: Android Build & Deploy
+    max_build_duration: 60
+    environment:
+      flutter: stable
+      android: latest
+      vars:
+        APP_ID: com.knight21.risbow
+        APP_NAME: Hyper Local
+      groups:
+        - firebase_android
+        - android_keystore
+        - app_config
+    cache:
+      cache_paths:
+        - ~/.pub-cache
+    scripts:
+      - name: Set up google-services.json
+        script: |
+          if [ -n "$GOOGLE_SERVICES_JSON_BASE64" ]; then
+            echo $GOOGLE_SERVICES_JSON_BASE64 | base64 --decode > android/app/google-services.json
+          fi
+      - name: Set up Android keystore
+        script: |
+          if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo $ANDROID_KEYSTORE_BASE64 | base64 --decode > android/hyperlocal.keystore
+          fi
+          if [ -n "$ANDROID_KEYSTORE_PASSWORD" ]; then
+            cat > android/key.properties << EOF
+          storePassword=$ANDROID_KEYSTORE_PASSWORD
+          keyPassword=$ANDROID_KEY_PASSWORD
+          keyAlias=$ANDROID_KEY_ALIAS
+          storeFile=hyperlocal.keystore
+          EOF
+          fi
+      - name: Install Flutter dependencies
+        script: flutter pub get
+      - name: Build Android App Bundle
+        script: |
+          flutter build appbundle --release
+      - name: Build Android APK
+        script: |
+          flutter build apk --release
+    artifacts:
+      - build/app/outputs/bundle/release/*.aab
+      - build/app/outputs/flutter-apk/*.apk
     publishing:
       email:
         recipients:
