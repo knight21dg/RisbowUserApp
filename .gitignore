@@ -1,0 +1,33 @@
+# macOS
+__MACOSX/
+.DS_Store
+
+# Flutter
+build/
+.idea/
+*.iml
+*.lock
+*.log
+.dart_tool/
+.packages
+.pub/
+.flutter-plugins*
+.android/
+.ios/
+.gradle/
+local.properties
+
+# Android
+*.apk
+*.aab
+*.keystore
+
+# iOS
+*.xcworkspace
+xcuserdata/
+Pods/
+
+# IDE
+.vscode/
+*.swp
+*.swo
