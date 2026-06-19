@@ -1,0 +1,38 @@
+Support for Android x86 targets will be removed in the next stable release after 3.27. See https://github.com/flutter/flutter/issues/157543 for details.
+Running Gradle task 'assembleDebug'...                          
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Could not open cp_settings generic class cache for settings file 'C:\knight21\hyperlocal\user app\hyperLocal-multivendor-eCommerce-customer-app-v1.0.0\android\settings.gradle' (C:\Users\PARDHU\.gradle\caches\8.0\scripts\ixzdkcvkr3hlu8dt91pgqyrg).
+> BUG! exception in phase 'semantic analysis' in source unit '_BuildScript_' Unsupported class file major version 65
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+
+* Get more help at https://help.gradle.org
+
+BUILD FAILED in 2m 15s
+Running Gradle task 'assembleDebug'...                            136.5s
+
+┌─ Flutter Fix ────────────────────────────────────────────────────────────────────────────────────┐
+│ [!] Your project's Gradle version is incompatible with the Java version that Flutter is using    │
+│ for Gradle.                                                                                      │
+│                                                                                                  │
+│ If you recently upgraded Android Studio, consult the migration guide at                          │
+│ https://flutter.dev/to/java-gradle-incompatibility.                                              │
+│                                                                                                  │
+│ Otherwise, to fix this issue, first, check the Java version used by Flutter by running `flutter  │
+│ doctor --verbose`.                                                                               │
+│                                                                                                  │
+│ Then, update the Gradle version specified in C:\knight21\hyperlocal\user                         │
+│ app\hyperLocal-multivendor-eCommerce-customer-app-v1.0.0\android\gradle\wrapper\gradle-wrapper.p │
+│ roperties to be compatible with that Java version. See the link below for more information on    │
+│ compatible Java/Gradle versions:                                                                 │
+│ https://docs.gradle.org/current/userguide/compatibility.html#java                                │
+│                                                                                                  │
+│                                                                                                  │
+└──────────────────────────────────────────────────────────────────────────────────────────────────┘
+Gradle task assembleDebug failed with exit code 1

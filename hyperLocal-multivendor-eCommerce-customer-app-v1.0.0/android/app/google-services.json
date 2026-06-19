@@ -1,0 +1,114 @@
+{
+  "project_info": {
+    "project_number": "54191014459",
+    "project_id": "risbow-knight21",
+    "storage_bucket": "risbow-knight21.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:54191014459:android:1b54e50d8ff6f61d05d21e",
+        "android_client_info": {
+          "package_name": "com.hyperlocal.partner"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "54191014459-brnpfhs6kviqqfho4f2tv3qpjf2t6s1a.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.hyperlocal.partner",
+            "certificate_hash": "2bef1be17ea7ff5fa8546ef6433f00296807ee9f"
+          }
+        },
+        {
+          "client_id": "54191014459-dlm6st9ij8bl6j1hhhgd98lq2eusv8jd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCL_L98cU3gpnRc85BlfSTmkm8kQ_1gTAs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "54191014459-dlm6st9ij8bl6j1hhhgd98lq2eusv8jd.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "54191014459-ebfrt8ngh8kc9prb8pimqg3141kqbkrd.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.knight21.risbow"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:54191014459:android:f82aa45186d10fd505d21e",
+        "android_client_info": {
+          "package_name": "com.knight21.risbow"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "54191014459-bmklkb3ii0e50q3ibm3pl8kdrcr027bk.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.knight21.risbow",
+            "certificate_hash": "2bc54b2fdc17e0d71c63611b36ea9ea689b03fc9"
+          }
+        },
+        {
+          "client_id": "54191014459-jeauq2m9jpgfv3gbmrnpulhm8dof4aqn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.knight21.risbow",
+            "certificate_hash": "10b06e3191126992a8e065c66226a644d5779b08"
+          }
+        },
+        {
+          "client_id": "54191014459-rae98vv782oqv2u2r8vm2gclmu6rdh1j.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.knight21.risbow",
+            "certificate_hash": "80ed94bde06dc4e6c92167d4d8b0ebf7a064135d"
+          }
+        },
+        {
+          "client_id": "54191014459-dlm6st9ij8bl6j1hhhgd98lq2eusv8jd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCL_L98cU3gpnRc85BlfSTmkm8kQ_1gTAs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "54191014459-dlm6st9ij8bl6j1hhhgd98lq2eusv8jd.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "54191014459-ebfrt8ngh8kc9prb8pimqg3141kqbkrd.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.knight21.risbow"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

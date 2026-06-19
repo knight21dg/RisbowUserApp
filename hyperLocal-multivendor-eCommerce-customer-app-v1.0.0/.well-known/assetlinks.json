@@ -1,0 +1,15 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls",
+      "delegate_permission/common.get_login_creds"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.knight21.risbow",
+      "sha256_cert_fingerprints": [
+        "AB:FF:02:14:4E:CC:ED:B7:09:A5:B1:D9:CB:13:4A:37:E7:E2:CA:95:A2:11:2D:67:73:63:C0:81:58:B7:56:D6"
+      ]
+    }
+  }
+]
